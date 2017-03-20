@@ -1,0 +1,9 @@
+{
+  "utterance": "sunspot count",
+  "intent_type": "SpotCountIntent",
+  "intent": {
+    "SunspotKeyword": "sunspot count",
+    "spotcount": "5",
+    "stations": "22"    
+  }
+}

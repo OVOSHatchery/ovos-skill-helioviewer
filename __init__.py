@@ -1,38 +1,40 @@
+
 from os.path import dirname
+
 from adapt.intent import IntentBuilder
 from mycroft.skills.core import MycroftSkill
 from mycroft.util.log import getLogger
 
 import requests
-import arrow
 
 __author__ = 'rboatright'
 
 LOGGER = getLogger(__name__)
 
-class sunspots(MycroftSkill):
+
+class SunspotSkill(MycroftSkill):
+
     def __init__(self):
-        super(sunspots, self).__init__(name="sunspots")
+        super(SunspotSkill, self).__init__(name="SunspotSkill")
 
     def initialize(self):
-        self.load_data_files(dirname(__file__))
-        sunspots_intent = IntentBuilder("sunspotsIntent").\
-            require("sunspots").build()
-        self.register_intent(sunspots_intent, self.handle_sunspots_intent)
+        spot_count_intent = IntentBuilder("SpotCountIntent").\
+            require("SunspotKeyword").build()
+        self.register_intent(spot_count_intent, self.handle_spot_count_intent)
+                
 
-    def handle_sunspots_intent(self, message):
-        r = requests.get("http://www.solarham.net/summary.txt")
-        t = str(r.json()['launches'][0]['windowstart'])
-        try:
-                self.speak_dialog("space.launch", data={'sunspots': r})
-
-                                                    
-        except:
-            self.speak_dialog("not.found")
-        
+    def handle_spot_count_intent(self, message):
+    	spdata = requests.get("http://www.sidc.be/silso/DATA/EISN/EISN_current.csv")
+    	sptext = spdata.text
+    	splines = sptext.splitlines()
+    	splines.reverse()
+    	spfields = splines[1].split(',')
+    	data = {'spotcount': spfields[4], 'stations': spfields[7]}
+    	self.speak_dialog("sunspots", data)
+    	        
     def stop(self):
         pass
 
 
 def create_skill():
-    return sunspots()
+    return SunspotSkill()
