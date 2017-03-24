@@ -21,6 +21,10 @@ class SunspotSkill(MycroftSkill):
         spot_count_intent = IntentBuilder("SpotCountIntent").\
             require("SunspotKeyword").build()
         self.register_intent(spot_count_intent, self.handle_spot_count_intent)
+        recent_intent = IntentBuilder("RecentIntent").\
+            require("RecentKeyword").build()
+        self.register_intent(recent_intent, self.handle_recent_intent)
+        
                 
 
     def handle_spot_count_intent(self, message):
@@ -44,7 +48,21 @@ class SunspotSkill(MycroftSkill):
     		self.speak(words)
     	else:
     		self.speak_dialog("sunspots", data)
-    	        
+
+    def handle_recent_intent(self, message):
+    	spdata = requests.get("http://www.sidc.be/silso/DATA/EISN/EISN_current.csv")
+    	sptext = spdata.text
+    	splines = sptext.splitlines()
+    	splines.reverse()
+    	spdays = splines[1].split(',')[4] + ", " +\
+    	    splines[2].split(',')[4] + ", " +\
+    	    splines[3].split(',')[4] + ", " +\
+    	    splines[4].split(',')[4] + ", " +\
+    	    splines[5].split(',')[4] + ", " +\
+    	    splines[6].split(',')[4]	   	
+    	data = {'spotcounts': spdays}
+    	self.speak_dialog("recent", data)
+
     def stop(self):
         pass
 
