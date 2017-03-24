@@ -1,1 +1,1 @@
-I wish I knew how to count. Astronomers say the count is {{spotcount}} reported from {{stations}} observatories.
+I wish I knew how to count. Astronomers say the count is {{spotcount}} {{spcomment}} reported from {{stations}} observatories.

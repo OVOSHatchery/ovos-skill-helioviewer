@@ -4,6 +4,7 @@
   "intent": {
     "SunspotKeyword": "sunspot count",
     "spotcount": "5",
-    "stations": "22"    
+    "stations": "22",
+    "spcomment": " same "    
   }
 }

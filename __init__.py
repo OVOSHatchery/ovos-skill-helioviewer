@@ -29,8 +29,21 @@ class SunspotSkill(MycroftSkill):
     	splines = sptext.splitlines()
     	splines.reverse()
     	spfields = splines[1].split(',')
-    	data = {'spotcount': spfields[4], 'stations': spfields[7]}
-    	self.speak_dialog("sunspots", data)
+    	spyfields = splines[2].split(',')
+    	chngcomment = " "
+    	pcchange = float(spyfields[4]) / float(spfields[4]) 
+    	if ( pcchange < 0.5 ) :
+    		chngcomment = " down a lot "
+    		
+    	if ( pcchange > 2 ) :
+    		chngcomment = " up a lot "
+    	    	   	
+    	data = {'spotcount': spfields[4], 'stations': spfields[7], 'spcomment': chngcomment}
+    	if ( int(spfields[4]) == 0 ) :
+    		words = "Wow, it's blank. No spots at all."
+    		self.speak(words)
+    	else:
+    		self.speak_dialog("sunspots", data)
     	        
     def stop(self):
         pass
