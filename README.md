@@ -1,4 +1,4 @@
-# <img src='./icon.png' width='50' height='50' style='vertical-align:bottom'/> SOlar and Heliospheric Observatory Skill
+# <img src='./icon.png' width='50' height='50' style='vertical-align:bottom'/> Solar and Heliospheric Observatory Skill
 ![](./logo.jpg)
 
 ## About
