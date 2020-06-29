@@ -1,0 +1,24 @@
+{
+  "name": "Solar and Heliospheric Observatory",
+  "skillname": "skill-sunspots",
+  "authorname": "JarbasSkills",
+  "foldername": "",
+  "url": "https://github.com/JarbasSkills/skill-sunspots",
+  "branch": "master",
+  "desktopFile": false,
+  "warning": "",
+  "systemDeps": false,
+  "platforms": [
+    "arm",
+    "arm64",
+    "i386",
+    "x86_64",
+    "ia64"
+  ],
+  "examples": [
+    "whats the number of sunspots",
+    "how many sunspots recently",
+    "how many sunspots yesterday",
+    "how many sunspots 3 days ago"
+  ]
+}

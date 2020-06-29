@@ -1,0 +1,3 @@
+Astronomers say the count on {{date}} was {{spotcount}} {{spcomment}} reported from {{stations}} observatories.
+There were {{spotcount}} on {{date}}, {{spcomment}} reported from {{stations}} observatories.
+There were {{spotcount}} on {{date}}, {{spcomment}} according to {{stations}} observatories.

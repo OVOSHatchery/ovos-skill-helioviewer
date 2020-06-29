@@ -1,0 +1,6 @@
+(sunspot count|Count of sunspots|number of sunspots|how many sunspots) (#|##|###|####) (days|months|years|weeks) ago
+(sunspot count|Count of sunspots|number of sunspots|how many sunspots) (yesterday|last week|last month|last weekend)
+(yesterday|last week|last month|last weekend) (sunspot count|Count of sunspots|number of sunspots|how many sunspots)
+(yesterday|last week|last month|last weekend) (sunspots|sun spots|sunspot)
+(sunspots|sun spots|sunspot) (yesterday|last week|last month|last weekend)
+(sunspots|sun spots|sunspot) (#|##|###|####) (days|months|years|weeks) ago

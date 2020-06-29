@@ -1,6 +1,31 @@
-# sunspots
-A sunspot number skill for mycroft. 
+# <img src='./icon.png' width='50' height='50' style='vertical-align:bottom'/> SOlar and Heliospheric Observatory Skill
+![](./logo.jpg)
 
-Yes, this duplicates a perfectly workable wolfram alpha query that already works, but it's a basis for future expansion. 
+## About
 
-This skill pulls the current month's count CSV file from sidc.be, splits it, and responds with the count and the number of observatories.  For more information on the data, visit http://www.sidc.be/silso/datafiles and look at the Daily Estimated Sunspot Number. 
+Daily sunspot data from [Sunspot Index and Long-term Solar Observations](http://sidc.be/silso/home) and pictures from NASA's [SOlar and Heliospheric Observatory](https://sohowww.nascom.nasa.gov/sunspots/)
+  
+Can be used as idle screen for the mark2
+
+![](gui.png)
+
+## Examples
+* "whats the number of sunspots"
+* "how many sunspots recently"
+* "how many sunspots yesterday"
+* "how many sunspots 3 days ago"
+
+## TODO
+- quick facts
+- next/previous intent
+
+## Credits
+- JarbasAi
+- [SOHO](https://sohowww.nascom.nasa.gov/sunspots/)
+- [SILSO](http://sidc.be/silso/home)
+
+## Category
+**Information**
+
+## Tags
+#nasa #space #sun
