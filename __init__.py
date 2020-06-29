@@ -6,6 +6,7 @@ from mtranslate import translate
 from lingua_franca.format import nice_date
 from lingua_franca.parse import extract_datetime
 from mycroft.util import create_daemon
+from adapt.intent import IntentBuilder
 
 
 class SunspotSkill(MycroftSkill):
@@ -15,6 +16,7 @@ class SunspotSkill(MycroftSkill):
         self.session = CachedSession(backend='memory',
                                      expire_after=timedelta(hours=6))
         self.translate_cache = {}
+        self.current_date = datetime.now()
         create_daemon(self.get_count)  # bootstrap cache
 
     def get_count(self):
@@ -52,7 +54,7 @@ class SunspotSkill(MycroftSkill):
                     pcchange = float(n / (prev + 0.000000001))
                     if pcchange < 0.5:
                         decrease = True
-                    if pcchange >= 1:
+                    if pcchange >= 2:
                         increase = True
                 change = n - prev
 
@@ -60,10 +62,10 @@ class SunspotSkill(MycroftSkill):
             title = "Sunspots - " + str(date)
             caption = str(n) + " sunspots"
             if increase:
-                caption = "\n It is a significant increase with " + \
-                          str(n) + " new spots"
+                caption += "\nA significant increase with " + \
+                          str(change) + " new spots"
             elif decrease:
-                caption = "\n It is a significant decrease with " + \
+                caption += "\nA significant decrease with " + \
                           str(abs(change)) + " less spots"
 
             data = {
@@ -96,7 +98,6 @@ class SunspotSkill(MycroftSkill):
                   "title": title,
                   "caption": caption,
                   "date-range": dt1 + " - " + dt2,
-                  "days": data,
                   "images": [i["imgLink"] for i in data],
                   "imgLink": data[0]["imgLink"]}
 
@@ -137,9 +138,9 @@ class SunspotSkill(MycroftSkill):
         data = tx_keys(dict(data))
         for k in data:
             if k != "weekly":
-                self.settings[k] = data[k]
                 self.gui[k] = data[k]
         self.set_context("SunSpots")
+        self.current_date = datetime.strptime(data["date_str"], "%Y-%m-%d")
         return data
 
     @resting_screen_handler("SunSpots")
@@ -154,6 +155,9 @@ class SunspotSkill(MycroftSkill):
         date = extract_datetime(message.data["utterance"], lang=self.lang)
         if date is not None:
             date, remainder = date
+        self._display(date)
+
+    def _display(self, date):
         data = self.update_picture(date)
         self.gui.show_image(data["imgLink"], override_idle=True,
                             title=data["title"],
@@ -185,6 +189,18 @@ class SunspotSkill(MycroftSkill):
         else:
             self.speak_dialog("recent",
                               {'spotcount': data["count"]})
+
+    @intent_handler(IntentBuilder("PrevSunPictureIntent")
+                    .require("previous").require("picture").require("SunSpots"))
+    def handle_prev(self, message):
+        date = self.current_date - timedelta(days=1)
+        self._display(date)
+
+    @intent_handler(IntentBuilder("NextSunPictureIntent")
+                    .require("next").require("picture").require("SunSpots"))
+    def handle_next(self, message):
+        date = self.current_date + timedelta(days=1)
+        self._display(date)
 
 
 def create_skill():

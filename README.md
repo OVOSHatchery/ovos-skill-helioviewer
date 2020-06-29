@@ -15,10 +15,11 @@ Can be used as idle screen for the mark2
 * "how many sunspots recently"
 * "how many sunspots yesterday"
 * "how many sunspots 3 days ago"
+* "next picture"
+* "previous picture"
 
 ## TODO
 - quick facts
-- next/previous intent
 
 ## Credits
 - JarbasAi
