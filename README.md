@@ -8,6 +8,7 @@ Daily sunspot data from [Sunspot Index and Long-term Solar Observations](http://
 Can be used as idle screen for the mark2
 
 ![](gui.png)
+![](gui2.png)
 
 ## Examples
 * "whats the number of sunspots"
