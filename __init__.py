@@ -28,7 +28,8 @@ class SunspotSkill(MycroftSkill):
         self.current_camera = "sunspots"
         create_daemon(self.bootstrap)
 
-    def get_images(self, date=None):
+    # web apis
+    def get_soho(self, date=None):
         # https://sohowww.nascom.nasa.gov/data/realtime/image-description.html
         date = date or datetime.now()
         date = date.replace(minute=0, second=0, microsecond=0)
@@ -95,7 +96,7 @@ class SunspotSkill(MycroftSkill):
         self.img_cache[date] = images
         return images
 
-    def get_count(self):
+    def get_silso(self):
         url = "http://www.sidc.be/silso/DATA/EISN/EISN_current.txt"
         # Line format [character position]:
         #  - [1-4]   Year
@@ -164,8 +165,8 @@ class SunspotSkill(MycroftSkill):
 
     # idle screen
     def update_picture(self, date=None):
-        data = self.get_count()
-        images = self.get_images(date)
+        data = self.get_silso()
+        images = self.get_soho(date)
 
         if date is not None:
             for d in data:
@@ -216,7 +217,6 @@ class SunspotSkill(MycroftSkill):
 
     @resting_screen_handler("SOHO")
     def idle(self, message):
-        # TODO self.settings checkbox for cameras
         cam2url = {
             "c2": "https://sohowww.nascom.nasa.gov/data/LATEST/current_c2.gif",
             "c3": "https://sohowww.nascom.nasa.gov/data/LATEST/current_c3.gif",
@@ -228,12 +228,17 @@ class SunspotSkill(MycroftSkill):
                 "https://sohowww.nascom.nasa.gov/data/LATEST/current_hmi_igr-512.mpg"),
             "hmimag": self.vid2gif(
                 "https://sohowww.nascom.nasa.gov/data/LATEST/current_hmi_mag-512.mpg"),
-            "sunspots": self.create_gif()
+            "sunspots": self._sunspot_gif()
         }
-        cam = message.data.get("cam") or random.choice(list(cam2url.keys()))
+        # TODO self.settings checkbox for cameras
+        cams = ["c2", "c3",
+                "eit171", "eit195", "eit284", "eit304",
+                "hmiigr", "hmimag"]
+        cam = message.data.get("cam") or random.choice(cams)
         self.current_camera = cam
         picture = cam2url[self.current_camera]
-        self.gui.show_animated_image(picture, override_idle=True)
+        self.gui.show_animated_image(picture, override_idle=True,
+                                     fill='PreserveAspectFit')
 
     # intents
     def _display(self, date):
@@ -270,6 +275,29 @@ class SunspotSkill(MycroftSkill):
             date, remainder = date
         self.current_camera = "sunspots"
         self._display(date)
+
+    @intent_handler(IntentBuilder("MDIIntent").require("sun")
+                    .optionally("visible").require("picture"))
+    @intent_handler(IntentBuilder("MDIIntent2").require("mdi")
+                    .optionally("sun").optionally("visible")
+                    .optionally("picture"))
+    def handle_mdi(self, message):
+        self.current_camera = "hmiigr"
+        date = extract_datetime(message.data["utterance"], lang=self.lang)
+        if date is not None:
+            date, remainder = date
+        self._display(date)
+        self.set_context("MDI" + self.current_camera)
+
+    @intent_handler(IntentBuilder("MagnetosphereIntent").require("sun")
+                    .require("magnetic").optionally("picture"))
+    def handle_mag(self, message):
+        self.current_camera = "hmimag"
+        date = extract_datetime(message.data["utterance"], lang=self.lang)
+        if date is not None:
+            date, remainder = date
+        self._display(date)
+        self.set_context("MDI" + self.current_camera)
 
     @intent_handler(IntentBuilder("LASCOIntent").require("lasco")
                     .optionally("inner").optionally("outer")
@@ -347,7 +375,7 @@ class SunspotSkill(MycroftSkill):
             "https://sohowww.nascom.nasa.gov/data/LATEST/current_hmi_igr-512.mpg")
         self.vid2gif(
             "https://sohowww.nascom.nasa.gov/data/LATEST/current_hmi_mag-512.mpg")
-        self.create_gif()
+        self._sunspot_gif()
 
     def vid2gif(self, url):
         # once a day only
@@ -361,10 +389,10 @@ class SunspotSkill(MycroftSkill):
             ff.run()
         return path
 
-    def create_gif(self):
+    def _sunspot_gif(self, n_days=30):
         urls = []
         date = datetime.now()
-        for i in range(30):
+        for i in range(n_days):
             url = "https://sohowww.nascom.nasa.gov/data/synoptic/sunspots/sunspots_1024_{y}{m}{d}.jpg" \
                 .format(y=date.year,
                         m="{:02d}".format(date.month),

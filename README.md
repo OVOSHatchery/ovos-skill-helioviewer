@@ -7,29 +7,30 @@ Daily sunspot data from [Sunspot Index and Long-term Solar Observations](http://
   
 Can be used as idle screen for the mark2
 
+![](gui7.png)
 ![](gui.png)
 ![](gui2.png)
 ![](gui3.png)
 ![](gui4.png)
-![](gui5.png)
 ![](gui.gif)
+![](gui6.png)
 
 
 ## Examples
+* "Live picture of the sun"
 * "whats the number of sunspots"
 * "how many sunspots yesterday"
 * "how many sunspots 3 days ago"
 * "show me a picture of the solar corona"
 * "ultraviolet sun picture for 2 million degrees"
 * "ultraviolet picture of the heliosphere"
+* "show me magnetic field of the sun"
 * "animate that"
 * "next picture"
 * "previous picture"
 
 ## TODO
 - quick facts
-- SDO/HMI Continuum intent
-- SDO/HMI Magnetogram intent
 
 ## Credits
 - JarbasAi
