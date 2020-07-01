@@ -1,2 +1,5 @@
 requests
 requests_cache
+bs4
+ffmpy
+pillow
