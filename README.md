@@ -17,7 +17,6 @@ Can be used as idle screen for the mark2
 
 ## Examples
 * "whats the number of sunspots"
-* "how many sunspots recently"
 * "how many sunspots yesterday"
 * "how many sunspots 3 days ago"
 * "show me a picture of the solar corona"

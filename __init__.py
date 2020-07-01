@@ -167,19 +167,6 @@ class SunspotSkill(MycroftSkill):
         data = self.get_count()
         images = self.get_images(date)
 
-        # sunspots
-        dt1 = data[0]["date_str"]
-        dt2 = data[-1]["date_str"]
-        n = sum([n["count"] for n in data])
-        title = "Recent Sunspots: " + dt1 + " - " + dt2
-        caption = "There were " + str(n) + " sunspots in the past week"
-        weekly = {"count": n,
-                  "title": title,
-                  "caption": caption,
-                  "date-range": dt1 + " - " + dt2,
-                  "images": [i["imgLink"] for i in data],
-                  "imgLink": data[0]["imgLink"]}
-
         if date is not None:
             for d in data:
                 if d["date_str"] == str(date.date()):
@@ -191,14 +178,13 @@ class SunspotSkill(MycroftSkill):
         else:
             data = data[-1]
         data["images"] = images
-        data["weekly"] = weekly
 
         if self.current_camera != "sunspots":
             data["imgLink"] = images[self.current_camera][-1]["imgLink"]
             data["title"] = images[self.current_camera][-1]["title"]
             data["caption"] = images[self.current_camera][-1]["caption"]
 
-        tx = ["title", "caption", "weekly"]
+        tx = ["title", "caption"]
 
         def tx_keys(bucket):
             for k in bucket:
@@ -224,12 +210,11 @@ class SunspotSkill(MycroftSkill):
                                                       "%Y-%m-%d")
 
         for k in data:
-            if k != "weekly":
-                self.gui[k] = data[k]
+            self.gui[k] = data[k]
         self.set_context("SunSpots", self.current_camera)
         return data
 
-    @resting_screen_handler("SunSpots")
+    @resting_screen_handler("SOHO")
     def idle(self, message):
         # TODO self.settings checkbox for cameras
         cam2url = {
@@ -273,7 +258,7 @@ class SunspotSkill(MycroftSkill):
                                    'spcomment': data["caption"]})
         else:
             self.speak(caption)
-        self.gui.show_image(url, override_idle=True,
+        self.gui.show_image(url, override_idle=60,
                             title=title,
                             fill='PreserveAspectFit', caption=caption)
 
@@ -285,21 +270,6 @@ class SunspotSkill(MycroftSkill):
             date, remainder = date
         self.current_camera = "sunspots"
         self._display(date)
-
-    @intent_file_handler("recent.intent")
-    def handle_recent_spot_count_intent(self, message):
-        self.current_camera = "sunspots"
-        data = self.update_picture()["weekly"]
-        # TODO pages for each date
-        self.gui.show_image(data["imgLink"], override_idle=True,
-                            title=data["title"],
-                            fill='PreserveAspectFit',
-                            caption=data["caption"])
-        if data["count"] == 0:
-            self.speak_dialog("nospots")
-        else:
-            self.speak_dialog("recent",
-                              {'spotcount': data["count"]})
 
     @intent_handler(IntentBuilder("LASCOIntent").require("lasco")
                     .optionally("inner").optionally("outer")
@@ -392,10 +362,19 @@ class SunspotSkill(MycroftSkill):
         return path
 
     def create_gif(self):
-        data = self.update_picture()
-        urls = data["weekly"]["images"]
+        urls = []
+        date = datetime.now()
+        for i in range(30):
+            url = "https://sohowww.nascom.nasa.gov/data/synoptic/sunspots/sunspots_1024_{y}{m}{d}.jpg" \
+                .format(y=date.year,
+                        m="{:02d}".format(date.month),
+                        d="{:02d}".format(date.day))
+            date -= timedelta(days=1)
+            urls.append(url)
+        urls.reverse()
+
         # once a day only
-        path = join(tempfile.gettempdir(), str(datetime.now().date()) + ".gif")
+        path = join(tempfile.gettempdir(), str(date.date()) + ".gif")
         if not exists(path):
             images = []
             for url in urls:
@@ -404,7 +383,7 @@ class SunspotSkill(MycroftSkill):
                 images.append(img)
             images[0].save(path,
                            save_all=True, append_images=images[1:],
-                           optimize=True, loop=1)
+                           optimize=True, loop=0)
         return path
 
 
