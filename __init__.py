@@ -16,10 +16,10 @@ from io import BytesIO
 import ffmpy
 
 
-class SunspotSkill(MycroftSkill):
+class HelioViewerSkill(MycroftSkill):
 
     def __init__(self):
-        super(SunspotSkill, self).__init__(name="SunspotSkill")
+        super(HelioViewerSkill, self).__init__(name="HelioViewerSkill")
         self.session = CachedSession(backend='memory',
                                      expire_after=timedelta(hours=6))
         self.translate_cache = {}  # save calls to avoid ip banning
@@ -27,6 +27,14 @@ class SunspotSkill(MycroftSkill):
         self.current_date = datetime.now()
         self.current_camera = "sunspots"
         create_daemon(self.bootstrap)
+
+    def initialize(self):
+        self.add_event('skill-helioviewer.jarbasskills.home',
+                       self.handle_homescreen)
+
+    # homescreen
+    def handle_homescreen(self, message):
+        self.gui.show_url("https://helioviewer.org/",  override_idle=True)
 
     # web apis
     def get_soho(self, date=None):
@@ -267,6 +275,10 @@ class SunspotSkill(MycroftSkill):
                             title=title,
                             fill='PreserveAspectFit', caption=caption)
 
+    @intent_file_handler("helioviewer.intent")
+    def handle_helioviewer_intent(self, message):
+        self.handle_homescreen(message)
+
     @intent_file_handler("number.intent")
     @intent_file_handler("number_date.intent")
     def handle_spot_count_intent(self, message):
@@ -416,4 +428,4 @@ class SunspotSkill(MycroftSkill):
 
 
 def create_skill():
-    return SunspotSkill()
+    return HelioViewerSkill()

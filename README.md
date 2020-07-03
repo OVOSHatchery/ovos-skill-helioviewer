@@ -1,9 +1,9 @@
-# <img src='./icon.png' width='50' height='50' style='vertical-align:bottom'/> Solar and Heliospheric Observatory Skill
+# <img src='./icon.png' width='50' height='50' style='vertical-align:bottom'/> Helioviewer Skill
 ![](./logo.jpg)
 
 ## About
 
-Daily sunspot data from [Sunspot Index and Long-term Solar Observations](http://sidc.be/silso/home) and pictures from NASA's [SOlar and Heliospheric Observatory](https://sohowww.nascom.nasa.gov/sunspots/)
+Daily sunspot data from [Sunspot Index and Long-term Solar Observations](http://sidc.be/silso/home) and pictures from NASA's [Solar and Heliospheric Observatory](https://sohowww.nascom.nasa.gov/sunspots/)
   
 Can be used as idle screen for the mark2
 
@@ -28,12 +28,14 @@ Can be used as idle screen for the mark2
 * "animate that"
 * "next picture"
 * "previous picture"
+* "open helioviewer"
 
 ## TODO
 - quick facts
 
 ## Credits
 - JarbasAi
+- [HelioViewer](https://helioviewer.org/)
 - [SOHO](https://sohowww.nascom.nasa.gov/sunspots/)
 - [SILSO](http://sidc.be/silso/home)
 
@@ -41,4 +43,4 @@ Can be used as idle screen for the mark2
 **Information**
 
 ## Tags
-#nasa #space #sun
+#nasa #space #sun #helioviewer

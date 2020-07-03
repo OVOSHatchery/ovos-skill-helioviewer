@@ -1,9 +1,9 @@
 {
-  "name": "Solar and Heliospheric Observatory",
-  "skillname": "skill-sunspots",
+  "name": "Helioviewer Skill",
+  "skillname": "skill-helioviewer",
   "authorname": "JarbasSkills",
   "foldername": "",
-  "url": "https://github.com/JarbasSkills/skill-sunspots",
+  "url": "https://github.com/JarbasSkills/skill-helioviewer",
   "branch": "master",
   "desktopFile": false,
   "warning": "",
@@ -26,6 +26,7 @@
     "ultraviolet picture of the heliosphere",
     "animate that",
     "next picture",
-    "previous picture"
+    "previous picture",
+    "open helioviewer"
   ]
 }
