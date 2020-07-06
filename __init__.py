@@ -418,9 +418,12 @@ class HelioViewerSkill(MycroftSkill):
         if not exists(path):
             images = []
             for url in urls:
-                response = self.session.get(url)
-                img = Image.open(BytesIO(response.content))
-                images.append(img)
+                try:
+                    response = self.session.get(url)
+                    img = Image.open(BytesIO(response.content))
+                    images.append(img)
+                except:
+                    pass
             images[0].save(path,
                            save_all=True, append_images=images[1:],
                            optimize=True, loop=0)
