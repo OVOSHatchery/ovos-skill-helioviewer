@@ -1,25 +1,26 @@
-from mycroft import intent_file_handler, intent_handler, MycroftSkill
-from mycroft.skills.core import resting_screen_handler
-from requests_cache import CachedSession
-from datetime import timedelta, datetime
-from mtranslate import translate
-from lingua_franca.format import nice_date
-from lingua_franca.parse import extract_datetime, extract_number
-from mycroft.util import create_daemon
-from adapt.intent import IntentBuilder
-import bs4
 import random
 import tempfile
-from os.path import join, exists
-from PIL import Image
+from datetime import timedelta, datetime
 from io import BytesIO
+from os.path import join, exists
+
+import bs4
 import ffmpy
+from PIL import Image
+from lingua_franca.format import nice_date
+from lingua_franca.parse import extract_datetime, extract_number
+from ovos_utils import create_daemon
+from ovos_workshop.decorators import intent_handler
+from ovos_workshop.decorators import resting_screen_handler
+from ovos_workshop.intents import IntentBuilder
+from ovos_workshop.skills import OVOSSkill
+from requests_cache import CachedSession
 
 
-class HelioViewerSkill(MycroftSkill):
+class HelioViewerSkill(OVOSSkill):
 
-    def __init__(self):
-        super(HelioViewerSkill, self).__init__(name="HelioViewerSkill")
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.session = CachedSession(backend='memory',
                                      expire_after=timedelta(hours=6))
         self.translate_cache = {}  # save calls to avoid ip banning
@@ -34,7 +35,7 @@ class HelioViewerSkill(MycroftSkill):
 
     # homescreen
     def handle_homescreen(self, message):
-        self.gui.show_url("https://helioviewer.org/",  override_idle=True)
+        self.gui.show_url("https://helioviewer.org/", override_idle=True)
 
     # web apis
     def get_soho(self, date=None):
@@ -55,9 +56,10 @@ class HelioViewerSkill(MycroftSkill):
             "https://soho.nascom.nasa.gov/data/REPROCESSING/Completed/{y}/hmiigr/{y}{m}{d}",
             "https://soho.nascom.nasa.gov/data/REPROCESSING/Completed/{y}/hmimag/{y}{m}{d}"
         ]
-        cams = ["c2", "c3",
-                "eit171", "eit195", "eit284", "eit304",
-                "hmiigr", "hmimag"]
+        cams = [
+            "c2", "c3", "eit171", "eit195", "eit284", "eit304", "hmiigr",
+            "hmimag"
+        ]
         for idx, url in enumerate(urls):
             # gui
             cam = cams[idx]
@@ -95,12 +97,16 @@ class HelioViewerSkill(MycroftSkill):
                     # parse picture url for photo date
                     hour = int(a["href"].split("_")[1][:2])
                     minute = int(a["href"].split("_")[1][2:])
-                    dt = date.replace(hour=hour, minute=minute,
-                                      second=0, microsecond=0)
-                    images[img_type] += [{"date_str": str(dt),
-                                          "title": title + str(dt),
-                                          "caption": caption,
-                                          "imgLink": url + "/" + a["href"]}]
+                    dt = date.replace(hour=hour,
+                                      minute=minute,
+                                      second=0,
+                                      microsecond=0)
+                    images[img_type] += [{
+                        "date_str": str(dt),
+                        "title": title + str(dt),
+                        "caption": caption,
+                        "imgLink": url + "/" + a["href"]
+                    }]
         self.img_cache[date] = images
         return images
 
@@ -205,7 +211,8 @@ class HelioViewerSkill(MycroftSkill):
                             for idx, d in enumerate(bucket[k]):
                                 bucket[k][idx] = tx_keys(d)
                         elif bucket[k] not in self.translate_cache:
-                            translated = translate(bucket[k], self.lang)
+                            translated = self.translator.translate(
+                                bucket[k], self.lang)
                             self.translate_cache[bucket[k]] = translated
                             bucket[k] = translated
                         else:
@@ -226,26 +233,39 @@ class HelioViewerSkill(MycroftSkill):
     @resting_screen_handler("SOHO")
     def idle(self, message):
         cam2url = {
-            "c2": "https://sohowww.nascom.nasa.gov/data/LATEST/current_c2.gif",
-            "c3": "https://sohowww.nascom.nasa.gov/data/LATEST/current_c3.gif",
-            "eit171": "https://sohowww.nascom.nasa.gov/data/LATEST/current_eit_171.gif",
-            "eit195": "https://sohowww.nascom.nasa.gov/data/LATEST/current_eit_195.gif",
-            "eit284": "https://sohowww.nascom.nasa.gov/data/LATEST/current_eit_284.gif",
-            "eit304": "https://sohowww.nascom.nasa.gov/data/LATEST/current_eit_304.gif",
-            "hmiigr": self.vid2gif(
-                "https://sohowww.nascom.nasa.gov/data/LATEST/current_hmi_igr-512.mpg"),
-            "hmimag": self.vid2gif(
-                "https://sohowww.nascom.nasa.gov/data/LATEST/current_hmi_mag-512.mpg"),
-            "sunspots": self._sunspot_gif()
+            "c2":
+                "https://sohowww.nascom.nasa.gov/data/LATEST/current_c2.gif",
+            "c3":
+                "https://sohowww.nascom.nasa.gov/data/LATEST/current_c3.gif",
+            "eit171":
+                "https://sohowww.nascom.nasa.gov/data/LATEST/current_eit_171.gif",
+            "eit195":
+                "https://sohowww.nascom.nasa.gov/data/LATEST/current_eit_195.gif",
+            "eit284":
+                "https://sohowww.nascom.nasa.gov/data/LATEST/current_eit_284.gif",
+            "eit304":
+                "https://sohowww.nascom.nasa.gov/data/LATEST/current_eit_304.gif",
+            "hmiigr":
+                self.vid2gif(
+                    "https://sohowww.nascom.nasa.gov/data/LATEST/current_hmi_igr-512.mpg"
+                ),
+            "hmimag":
+                self.vid2gif(
+                    "https://sohowww.nascom.nasa.gov/data/LATEST/current_hmi_mag-512.mpg"
+                ),
+            "sunspots":
+                self._sunspot_gif()
         }
         # TODO self.settings checkbox for cameras
-        cams = ["c2", "c3",
-                "eit171", "eit195", "eit284", "eit304",
-                "hmiigr", "hmimag"]
+        cams = [
+            "c2", "c3", "eit171", "eit195", "eit284", "eit304", "hmiigr",
+            "hmimag"
+        ]
         cam = message.data.get("cam") or random.choice(cams)
         self.current_camera = cam
         picture = cam2url[self.current_camera]
-        self.gui.show_animated_image(picture, override_idle=True,
+        self.gui.show_animated_image(picture,
+                                     override_idle=True,
                                      fill='PreserveAspectFit')
 
     # intents
@@ -259,28 +279,34 @@ class HelioViewerSkill(MycroftSkill):
             if data["count"] == 0:
                 self.speak_dialog("nospots")
             elif date is not None:
-                self.speak_dialog("sunspots.past",
-                                  {'spotcount': data["count"],
-                                   "date": data["human_date"],
-                                   'stations': data["n_stations"],
-                                   'spcomment': data["caption"]})
+                self.speak_dialog(
+                    "sunspots.past", {
+                        'spotcount': data["count"],
+                        "date": data["human_date"],
+                        'stations': data["n_stations"],
+                        'spcomment': data["caption"]
+                    })
             else:
-                self.speak_dialog("sunspots",
-                                  {'spotcount': data["count"],
-                                   'stations': data["n_stations"],
-                                   'spcomment': data["caption"]})
+                self.speak_dialog(
+                    "sunspots", {
+                        'spotcount': data["count"],
+                        'stations': data["n_stations"],
+                        'spcomment': data["caption"]
+                    })
         else:
             self.speak(caption)
-        self.gui.show_image(url, override_idle=60,
+        self.gui.show_image(url,
+                            override_idle=60,
                             title=title,
-                            fill='PreserveAspectFit', caption=caption)
+                            fill='PreserveAspectFit',
+                            caption=caption)
 
-    @intent_file_handler("helioviewer.intent")
+    @intent_handler("helioviewer.intent")
     def handle_helioviewer_intent(self, message):
         self.handle_homescreen(message)
 
-    @intent_file_handler("number.intent")
-    @intent_file_handler("number_date.intent")
+    @intent_handler("number.intent")
+    @intent_handler("number_date.intent")
     def handle_spot_count_intent(self, message):
         date = extract_datetime(message.data["utterance"], lang=self.lang)
         if date is not None:
@@ -288,11 +314,12 @@ class HelioViewerSkill(MycroftSkill):
         self.current_camera = "sunspots"
         self._display(date)
 
-    @intent_handler(IntentBuilder("MDIIntent").require("sun")
-                    .optionally("visible").require("picture"))
-    @intent_handler(IntentBuilder("MDIIntent2").require("mdi")
-                    .optionally("sun").optionally("visible")
-                    .optionally("picture"))
+    @intent_handler(
+        IntentBuilder("MDIIntent").require("sun").optionally(
+            "visible").require("picture"))
+    @intent_handler(
+        IntentBuilder("MDIIntent2").require("mdi").optionally(
+            "sun").optionally("visible").optionally("picture"))
     def handle_mdi(self, message):
         self.current_camera = "hmiigr"
         date = extract_datetime(message.data["utterance"], lang=self.lang)
@@ -301,8 +328,9 @@ class HelioViewerSkill(MycroftSkill):
         self._display(date)
         self.set_context("MDI" + self.current_camera)
 
-    @intent_handler(IntentBuilder("MagnetosphereIntent").require("sun")
-                    .require("magnetic").optionally("picture"))
+    @intent_handler(
+        IntentBuilder("MagnetosphereIntent").require("sun").require(
+            "magnetic").optionally("picture"))
     def handle_mag(self, message):
         self.current_camera = "hmimag"
         date = extract_datetime(message.data["utterance"], lang=self.lang)
@@ -311,9 +339,9 @@ class HelioViewerSkill(MycroftSkill):
         self._display(date)
         self.set_context("MDI" + self.current_camera)
 
-    @intent_handler(IntentBuilder("LASCOIntent").require("lasco")
-                    .optionally("inner").optionally("outer")
-                    .optionally("picture"))
+    @intent_handler(
+        IntentBuilder("LASCOIntent").require("lasco").optionally(
+            "inner").optionally("outer").optionally("picture"))
     def handle_lasco(self, message):
         if message.data.get("inner"):
             self.current_camera = "c2"
@@ -327,10 +355,10 @@ class HelioViewerSkill(MycroftSkill):
         self._display(date)
         self.set_context("LASCO" + self.current_camera)
 
-    @intent_handler(IntentBuilder("EITIntent").require("eit").require("sun")
-                    .optionally("high").optionally("low")
-                    .optionally("atmosphere").optionally("temperature")
-                    .optionally("picture"))
+    @intent_handler(
+        IntentBuilder("EITIntent").require("eit").require("sun").optionally(
+            "high").optionally("low").optionally("atmosphere").optionally(
+            "temperature").optionally("picture"))
     def handle_eit(self, message):
         camera = random.choice(["eit304", "eit171", "eit195", "eit284"])
         n = extract_number(message.data["utterance"], ordinals=True)
@@ -360,21 +388,23 @@ class HelioViewerSkill(MycroftSkill):
         self._display(date)
         self.set_context("EIT" + self.current_camera[3:])
 
-    @intent_handler(IntentBuilder("PrevSunPictureIntent")
-                    .require("previous").require("picture")
-                    .require("SunSpots"))
+    @intent_handler(
+        IntentBuilder("PrevSunPictureIntent").require("previous").require(
+            "picture").require("SunSpots"))
     def handle_prev(self, message):
         date = self.current_date - timedelta(days=1)
         self._display(date)
 
-    @intent_handler(IntentBuilder("NextSunPictureIntent")
-                    .require("next").require("picture").require("SunSpots"))
+    @intent_handler(
+        IntentBuilder("NextSunPictureIntent").require("next").require(
+            "picture").require("SunSpots"))
     def handle_next(self, message):
         date = self.current_date + timedelta(days=1)
         self._display(date)
 
-    @intent_handler(IntentBuilder("AnimateSunPictureIntent")
-                    .require("animate").optionally("picture").require("SunSpots"))
+    @intent_handler(
+        IntentBuilder("AnimateSunPictureIntent").require("animate").optionally(
+            "picture").require("SunSpots"))
     def handle_animate(self, message):
         self.speak_dialog("animation")
         message.data["cam"] = self.current_camera
@@ -384,9 +414,11 @@ class HelioViewerSkill(MycroftSkill):
     def bootstrap(self):
         # speed up on load - cache
         self.vid2gif(
-            "https://sohowww.nascom.nasa.gov/data/LATEST/current_hmi_igr-512.mpg")
+            "https://sohowww.nascom.nasa.gov/data/LATEST/current_hmi_igr-512.mpg"
+        )
         self.vid2gif(
-            "https://sohowww.nascom.nasa.gov/data/LATEST/current_hmi_mag-512.mpg")
+            "https://sohowww.nascom.nasa.gov/data/LATEST/current_hmi_mag-512.mpg"
+        )
         self._sunspot_gif()
 
     def vid2gif(self, url):
@@ -394,10 +426,7 @@ class HelioViewerSkill(MycroftSkill):
         name = url.split("/")[-1].replace(".mpg", ".gif")
         path = join(tempfile.gettempdir(), str(datetime.now().date()) + name)
         if not exists(path):
-            ff = ffmpy.FFmpeg(
-                inputs={url: None},
-                outputs={path: None}
-            )
+            ff = ffmpy.FFmpeg(inputs={url: None}, outputs={path: None})
             ff.run()
         return path
 
@@ -425,10 +454,8 @@ class HelioViewerSkill(MycroftSkill):
                 except:
                     pass
             images[0].save(path,
-                           save_all=True, append_images=images[1:],
-                           optimize=True, loop=0)
+                           save_all=True,
+                           append_images=images[1:],
+                           optimize=True,
+                           loop=0)
         return path
-
-
-def create_skill():
-    return HelioViewerSkill()
